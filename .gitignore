@@ -1,0 +1,29 @@
+/node_modules/*
+/.clj-kondo
+/.lsp
+/.vscode
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/dyplom/node_modules
+/dyplom/.pnp
+/dyplom/.pnp.js
+
+# testing
+/dyplom/coverage
+
+# production
+/dyplom/build
+
+# misc
+/dyplom/.DS_Store
+/dyplom/.env.local
+/dyplom/.env.development.local
+/dyplom/.env.test.local
+/dyplom/.env.production.local
+
+/dyplom/npm-debug.log*
+/dyplom/yarn-debug.log*
+/dyplom/yarn-error.log*
+
+/server/node_modules/
