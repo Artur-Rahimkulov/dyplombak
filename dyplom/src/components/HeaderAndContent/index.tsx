@@ -5,13 +5,14 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Content, Header } from 'antd/es/layout/layout';
 import Sider from 'antd/es/layout/Sider';
 import styles from '../../App.module.css'
-import { EyeOutlined, FileSyncOutlined, FileTextOutlined, HomeOutlined, LogoutOutlined, MenuFoldOutlined, MenuOutlined, MenuUnfoldOutlined, ReadOutlined, SignatureOutlined, SyncOutlined, TableOutlined, UploadOutlined, VideoCameraOutlined } from '@ant-design/icons';
+import { EyeOutlined, FileSyncOutlined, FileTextOutlined, HomeOutlined, LoginOutlined, LogoutOutlined, MenuFoldOutlined, MenuOutlined, MenuUnfoldOutlined, ReadOutlined, SignatureOutlined, SyncOutlined, TableOutlined, UploadOutlined, VideoCameraOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
 import authStore from '../../store/auth.store';
 import a from '../../icons/logo500x500.png'
 import { MenuInfo } from 'rc-menu/lib/interface';
 import { ItemType, MenuItemType } from 'antd/es/menu/hooks/useItems';
 import { title } from 'process';
+import { set } from 'mobx';
 /**
  * Renders the main component of the application.
  * 
@@ -50,8 +51,8 @@ function HeaderAndContent(props: Props) {
     {
       key: 'list',
       icon: <MenuOutlined />,
-      label: 'Мои тексты',
-      title: 'Мои тексты',
+      label: 'Тексты',
+      title: 'Тексты',
       onClick: (info) => navigateTo(info, '/list')
     },
     {
@@ -79,8 +80,8 @@ function HeaderAndContent(props: Props) {
             {
               key: 'clip',
               icon: <VideoCameraOutlined />,
-              label: 'Клип',
-              title: 'Клип',
+              label: 'RSPV',
+              title: 'RSPV',
               onClick: (info) => navigateTo(info, '/clip')
 
             },
@@ -114,12 +115,16 @@ function HeaderAndContent(props: Props) {
     },
     {
       key: 'exit',
-      label: 'Выход',
+      label: authStore.isAuth ? 'Выход' : 'Войти',
       style: {
         position: 'absolute', bottom: '0px'
       },
-      icon: <LogoutOutlined />,
-      onClick: authStore.logout
+      icon: authStore.isAuth ? <LogoutOutlined /> : <LoginOutlined />,
+      onClick: () => {
+        if (authStore.isAuth)
+          authStore.logout()
+        else navigate('/login')
+      }
     }
 
   ] as ItemType<MenuItemType>[]
@@ -130,7 +135,7 @@ function HeaderAndContent(props: Props) {
 
   useEffect(() => {
     let title = getTitlesFromItems(items).find(t => t.key === path.pathname.split('/')[1])?.title
-    let newTitle = title ? title : 'Easy Reader'
+    let newTitle = title ? title : 'Читай быстрее'
     setTitle(newTitle)
     document.title = newTitle
   }, [path.pathname])
@@ -148,11 +153,11 @@ function HeaderAndContent(props: Props) {
       <div className={styles.container}>
         <Layout>
           <Sider trigger={null} collapsible collapsed={collapsed}>
-            <img src={a} width={50} height={50} style={{ margin: '9px', borderRadius: '8px' }} color='black' />
+            <img src={a} onClick={() => setCollapsed(!collapsed)} width={50} height={50} style={{ margin: '9px', borderRadius: '8px' }} color='black' />
             <Menu
               theme="dark"
               mode="inline"
-              selectedKeys={[path.pathname.split('/')[1]]}
+              selectedKeys={[path.pathname.split('/')[1]== '' ? 'main' : path.pathname.split('/')[1]] }
               items={items}
             />
           </Sider>

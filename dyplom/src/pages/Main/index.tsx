@@ -6,9 +6,9 @@ import Title from 'antd/es/typography/Title';
 
 function Main() {
     return <Typography style={{ textAlign: 'left' }}>
-        <Title style={{ marginTop: '0' }}>
+        {/* <Title style={{ marginTop: '0' }}>
             EasyReader
-        </Title>
+        </Title> */}
         <Title level={4}>
             Зачем нужно читать быстрее?
         </Title>

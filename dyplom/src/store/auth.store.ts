@@ -17,12 +17,16 @@ class AuthStore {
     this.isLoadingAuth = true;
     try {
       const resp = await AuthService.login(user, password);
-      if (!resp.data.status)
-        if (resp.data.message){
+      if (!resp.data.status){
+
+        if (resp.data.message) {
           return message.error(resp.data.message);
         }
-      localStorage.setItem("token", resp.data.jwt);
-      this.isAuth = true;
+      }else{
+
+        localStorage.setItem("token", resp.data.jwt);
+        this.isAuth = true;
+      }
       if (redirect)
         redirect()
     } catch (err) {
@@ -36,12 +40,15 @@ class AuthStore {
     this.isLoadingAuth = true;
     try {
       const resp = await AuthService.signup(user, password);
-      if (!resp.data.status)
-        if (resp.data.message)
+      if (!resp.data.status) {
 
+        if (resp.data.message)
           return message.error(resp.data.message);
-      localStorage.setItem("token", resp.data.jwt);
-      this.isAuth = true;
+      } else {
+
+        localStorage.setItem("token", resp.data.jwt);
+        this.isAuth = true;
+      }
       if (redirect)
         redirect()
     } catch (err) {
@@ -57,7 +64,7 @@ class AuthStore {
     try {
       const resp = await AuthService.checkAuthorized();
       if (!resp.data.status)
-        this.logout()
+        return this.logout()
       this.isAuth = true
     } catch (err) {
       console.log("login error");

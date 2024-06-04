@@ -9,6 +9,7 @@ import moment from 'moment';
 import { User } from '../../models/User';
 import { ItemType } from 'antd/es/menu/hooks/useItems';
 import { CONST_ACCESS_LEVELS, CONST_TRAINS } from '../../utils/constants';
+import { get } from 'http';
 /**
  * Renders the main component of the application.
  * 
@@ -19,8 +20,10 @@ const tagInputStyle: React.CSSProperties = {
     height: 22,
     // marginInlineEnd: 8,
     margin: 0,
+    verticalAlign: 'middle',
+    placeItems: 'center',
 
-    verticalAlign: 'top',
+    // verticalAlign: 'top',
 };
 
 const tagPlusStyle: React.CSSProperties = {
@@ -112,9 +115,9 @@ function RenderTextCard({
                 style={tagInputStyle}
                 bordered={false}
                 value={null}
-                placeholder="Новый тэг"
+                placeholder="Добавить закладку"
                 popupMatchSelectWidth={false}
-                title='Новый тэг'
+                title='Добавить закладки'
                 options={options}
                 onSelect={(e, option) => handleAddToGroup(option.value as string, item)}
             />
@@ -133,178 +136,206 @@ function RenderTextCard({
 
     }
     return (
-        getItem(<List.Item style={{ height: '100%', flex: 1, width: '100%', padding: 3, margin: 3, display: 'flex', flexDirection: 'column', minHeight: '290px' }}>
+        getItem(
+            <List.Item style={{ height: '100%', flex: 1, width: '100%', padding: 3, margin: 3, display: 'flex', flexDirection: 'column', minHeight: '290px' }}>
 
 
-            <Card
-                onClick={() => onSelect && onSelect(item._id)}
-                style={{
-                    height: '100%', flex: 1, width: '100%', display: 'flex', flexDirection: 'column',
-                }}
-                hoverable={true}
-                styles={{
-                    actions: {
-                        padding: 0,
-                        margin: 0,
-                    },
-                    body: {
-                        padding: 12,
-                        flexGrow: 1,
-                        paddingBottom: 0,
-                        display: 'flex',
-                        flexDirection: 'column',
-                    }
-                }}
-                actions={!selectMode ? [
-                    <IconText
-                        icon={item.user.lastReaded ? <EyeOutlined /> : <EyeInvisibleOutlined />}
-                        style={item.user.lastReaded ? { color: '#1890ff' } : {}}
-                        text={item.views + ''}
-                        key="list-vertical-star-o" />,
-                    <IconText
-                        style={(item.user.liked == 1) ? { color: '#1890ff' } : {}}
-
-                        onClick={() => handleRate(item, 'like')}
-                        icon={<LikeOutlined />}
-                        text={item.likes + ''}
-                        key="list-vertical-like-o" />,
-                    <IconText
-                        style={(item.user.liked == 0) ? { color: '#1890ff' } : {}}
-                        onClick={() => handleRate(item, 'dislike')}
-                        icon={<DislikeOutlined />}
-                        text={item.dislikes + ''}
-                        key="list-vertical-message" />,
-                    <Dropdown menu={{
-                        items: Object.entries(CONST_TRAINS).map(
-                            ([key, value], index, arr) => ({
-                                key: value.key,
-                                icon: value.icon,
-                                label: value.label,
-                                title: value.title,
-                                onClick: (info) => navigate(value.path + 'id/' + item._id)
-                            }))
-                    }}
-                        trigger={['click']}>
-                        <ReadOutlined />
-                    </Dropdown>,
-                    <Dropdown menu={{
+                <Dropdown
+                    disabled={selectMode}
+                    trigger={['contextMenu']}
+                    menu={{
                         items: [
                             { key: '1', disabled: user?._id != item.author._id, label: 'Редактировать', onClick: () => handleEdit(item), icon: <EditOutlined /> },
                             { key: '3', label: 'Копировать к себе', onClick: () => handleCopy(item), icon: <CopyOutlined /> },
                             { type: 'divider' },
+                            {
+                                label: 'Открыть в',
+                                type: 'group',
+                                children: Object.entries(CONST_TRAINS).map(
+                                    ([key, value], index, arr) => value.type == 'text' ? ({
+                                        key: value.key,
+                                        icon: value.icon,
+                                        label: value.label,
+                                        title: value.title,
+                                        onClick: (info) => navigate(value.path + 'id/' + item._id)
+                                    }) : null)
+                            },
+                            { type: 'divider' },
                             { key: '2', disabled: user?._id != item.author._id, label: 'Удалить', danger: true, onClick: () => handleDelete(item), icon: <DeleteOutlined /> },
                         ]
-                    }}
-                        trigger={['click']}>
-                        <BarsOutlined />
-                    </Dropdown>
+                    }}>
 
-                ] : []}
-            >
-                <Meta
-                    style={{ flexGrow: 1 }}
-                    avatar={
-                        <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', gap: '4px', justifyContent: 'space-between' }}>
-                            <Tooltip title={'Автор: ' + item.author.username} placement='bottom' color='gray'>
-                                <Avatar size='small' icon={<UserOutlined />} />
-                            </Tooltip>
-                            {user?._id == item.author._id && !selectMode && <>
-                                <Dropdown menu={{
-                                    items: Object.entries(CONST_ACCESS_LEVELS).map(([key, value], index) => ({
-                                        key: key,
-                                        label: value.name,
+                    <Card
+                        onClick={() => onSelect && onSelect(item._id)}
+                        style={{
+                            height: '100%', flex: 1, width: '100%', display: 'flex', flexDirection: 'column',
+                        }}
+                        hoverable={true}
+                        styles={{
+                            actions: {
+                                padding: 0,
+                                margin: 0,
+                            },
+                            body: {
+                                padding: 12,
+                                flexGrow: 1,
+                                paddingBottom: 0,
+                                display: 'flex',
+                                flexDirection: 'column',
+                            }
+                        }}
+                        actions={!selectMode ? [
+                            <IconText
+                                icon={item.user.lastReaded ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+                                style={item.user.lastReaded ? { color: '#1890ff' } : {}}
+                                text={item.views + ''}
+                                key="list-vertical-star-o" />,
+                            <IconText
+                                style={(item.user.liked == 1) ? { color: '#1890ff' } : {}}
+
+                                onClick={() => handleRate(item, 'like')}
+                                icon={<LikeOutlined />}
+                                text={item.likes + ''}
+                                key="list-vertical-like-o" />,
+                            <IconText
+                                style={(item.user.liked == 0) ? { color: '#1890ff' } : {}}
+                                onClick={() => handleRate(item, 'dislike')}
+                                icon={<DislikeOutlined />}
+                                text={item.dislikes + ''}
+                                key="list-vertical-message" />,
+                            <Dropdown menu={{
+                                items: Object.entries(CONST_TRAINS).map(
+                                    ([key, value], index, arr) => value.type == 'text' ? ({
+                                        key: value.key,
                                         icon: value.icon,
-                                        title: value.name,
-                                        onClick: () => handleAccessLevel(item, key as 'private' | 'public' | 'access_link')
-                                    } as ItemType))
-                                }}
-                                    trigger={['click']}>
-                                    <Tooltip title={'Приватность: ' + CONST_ACCESS_LEVELS[item.accessLevel].name} placement='top' color='gray'>
-                                        <Avatar size='small' icon={CONST_ACCESS_LEVELS[item.accessLevel].icon} shape='square' style={{ backgroundColor: '#eee', color: '#000' }} />
-                                    </Tooltip>
-                                </Dropdown>
-                                {item.access_link && item.accessLevel == 'access_link' &&
-                                    <Tooltip title={'Скопировать ссылку'} placement='top' color='gray'>
-                                        <Avatar size='small' icon={<ExportOutlined />} onClick={() => handleShare(item)} shape='square' style={{ backgroundColor: '#eee', color: '#000' }} />
-                                    </Tooltip>
-                                }
-                            </>}
+                                        label: value.label,
+                                        title: value.title,
+                                        onClick: (info) => navigate(value.path + 'id/' + item._id)
+                                    }) : null)
+                            }}
+                                trigger={['click']}>
+                                <ReadOutlined />
+                            </Dropdown>,
+                            <Dropdown menu={{
+                                items: [
+                                    { key: '1', disabled: user?._id != item.author._id, label: 'Редактировать', onClick: () => handleEdit(item), icon: <EditOutlined /> },
+                                    { key: '3', label: 'Копировать к себе', onClick: () => handleCopy(item), icon: <CopyOutlined /> },
+                                    { type: 'divider' },
+                                    { key: '2', disabled: user?._id != item.author._id, label: 'Удалить', danger: true, onClick: () => handleDelete(item), icon: <DeleteOutlined /> },
+                                ]
+                            }}
+                                trigger={['click']}>
+                                <BarsOutlined />
+                            </Dropdown>
 
+                        ] : []}
+                    >
+                        <Meta
+                            style={{ flexGrow: 1 }}
+                            avatar={
+                                <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', gap: '4px', justifyContent: 'space-between' }}>
+                                    <Tooltip title={'Автор: ' + item.author.username} placement='bottom' color='gray'>
+                                        <Avatar style={{ backgroundColor: getRandomLightColorFromText(item.author._id) }} size='small' icon={<UserOutlined />} />
+                                    </Tooltip>
+                                    {user?._id == item.author._id && !selectMode && <>
+                                        <Dropdown menu={{
+                                            items: Object.entries(CONST_ACCESS_LEVELS).map(([key, value], index) => ({
+                                                key: key,
+                                                label: value.name,
+                                                icon: value.icon,
+                                                title: value.name,
+                                                onClick: () => handleAccessLevel(item, key as 'private' | 'public' | 'access_link')
+                                            } as ItemType))
+                                        }}
+                                            trigger={['click']}>
+                                            <Tooltip title={'Приватность: ' + CONST_ACCESS_LEVELS[item.accessLevel].name} placement='top' color='gray'>
+                                                <Avatar size='small' icon={CONST_ACCESS_LEVELS[item.accessLevel].icon} shape='square' style={{ backgroundColor: '#eee', color: '#000' }} />
+                                            </Tooltip>
+                                        </Dropdown>
+                                        {item.access_link && item.accessLevel == 'access_link' &&
+                                            <Tooltip title={'Скопировать ссылку'} placement='top' color='gray'>
+                                                <Avatar size='small' icon={<ExportOutlined />} onClick={() => handleShare(item)} shape='square' style={{ backgroundColor: '#eee', color: '#000' }} />
+                                            </Tooltip>
+                                        }
+                                    </>}
+
+                                </div>
+
+                            }
+
+                            title={<Tooltip title={item.title}>{item.title}</Tooltip>}
+                            description={
+
+                                <Typography.Paragraph style={{
+                                    whiteSpace: expand ? 'pre-line' : '',
+                                }}
+                                    ellipsis={{
+                                        expanded: expand,
+                                        expandable: 'collapsible',
+                                        rows: 5,
+                                        symbol: (expanded) => {
+                                            if (!expanded)
+                                                return <Typography.Link onClick={() => setExpand(true)}>Показать ещё</Typography.Link>
+                                            return <Typography.Link onClick={() => setExpand(false)}>Скрыть</Typography.Link>
+                                        },
+                                    }}
+
+                                >
+                                    {item.description}
+
+                                </Typography.Paragraph>}
+                        />
+
+
+                        <Flex gap="4px 0" wrap='wrap' style={{ marginTop: '0px', marginBottom: '8px' }}>
+                            <Typography.Text style={{ fontSize: '0.8em', color: '#999' }}>Закладки:</Typography.Text>
+                            {item.user.favorites?.map<React.ReactNode>((tag, index) => {
+                                let name = favoritesGroups.find(group => group._id == tag.group)?.name;
+                                if (name) {
+                                    const isLongTag = name.length > 20;
+                                    const tagElem = (
+                                        <Tag
+                                            key={tag._id}
+                                            closable={true}
+                                            style={{
+                                                userSelect: 'none',
+                                                display: 'flex',
+                                                alignItems: 'baseline',
+                                                color: getOptimalTextColor(getRandomLightColorFromText(tag.group)),
+                                                justifyContent: 'center', margin: 0, marginLeft: '8px'
+                                            }}
+                                            color={getRandomLightColorFromText(tag.group)}
+
+                                            onClose={() => deleteFromGroup(tag.group, item)}
+                                        >
+                                            <span
+                                            >
+                                                {isLongTag ? `${name.slice(0, 20)}...` : name}
+                                            </span>
+                                        </Tag>
+                                    );
+                                    return isLongTag ? (
+                                        <Tooltip title={name} key={tag._id}>
+                                            {tagElem}
+                                        </Tooltip>
+                                    ) : (
+                                        tagElem
+                                    );
+                                } else return null
+                            })
+                            }
+                            {!selectMode && getSelect()}
+
+                        </Flex>
+                        <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <Typography.Text style={{ fontSize: '0.8em', color: '#999' }}>Добавлено: {moment(item.createdAt).format('DD.MM.YYYY HH:mm')}</Typography.Text>
+                            <Typography.Text style={{ fontSize: '0.8em', color: '#999' }}>Обновлено: {moment(item.updatedAt).format('DD.MM.YYYY HH:mm')}</Typography.Text>
                         </div>
 
-                    }
+                    </Card >
+                </Dropdown>
 
-                    title={<span>{item.title}</span>}
-                    description={
-
-                        <Typography.Paragraph style={{
-                            whiteSpace: expand ? 'pre-line' : '',
-                        }}
-                            ellipsis={{
-                                expanded: expand,
-                                expandable: 'collapsible',
-                                rows: 5,
-                                symbol: (expanded) => {
-                                    if (!expanded)
-                                        return <Typography.Link onClick={() => setExpand(true)}>Показать ещё</Typography.Link>
-                                    return <Typography.Link onClick={() => setExpand(false)}>Скрыть</Typography.Link>
-                                },
-                            }}
-
-                        >
-                            {item.description}
-
-                        </Typography.Paragraph>}
-                />
-
-
-                <Flex gap="4px 0" wrap='wrap' style={{ marginTop: '0px', marginBottom: '8px' }}>
-                    <Typography.Text style={{ fontSize: '0.8em', color: '#999' }}>Теги:</Typography.Text>
-                    {item.user.favorites?.map<React.ReactNode>((tag, index) => {
-                        let name = favoritesGroups.find(group => group._id == tag.group)?.name;
-                        if (name) {
-                            const isLongTag = name.length > 20;
-                            const tagElem = (
-                                <Tag
-                                    key={tag._id}
-                                    closable={true}
-                                    style={{
-                                        userSelect: 'none',
-                                        display: 'flex',
-                                        alignItems: 'baseline',
-                                        color: getOptimalTextColor(getRandomLightColorFromText(tag.group)),
-                                        justifyContent: 'center', margin: 0, marginLeft: '8px'
-                                    }}
-                                    color={getRandomLightColorFromText(tag.group)}
-
-                                    onClose={() => deleteFromGroup(tag.group, item)}
-                                >
-                                    <span
-                                    >
-                                        {isLongTag ? `${name.slice(0, 20)}...` : name}
-                                    </span>
-                                </Tag>
-                            );
-                            return isLongTag ? (
-                                <Tooltip title={name} key={tag._id}>
-                                    {tagElem}
-                                </Tooltip>
-                            ) : (
-                                tagElem
-                            );
-                        } else return null
-                    })
-                    }
-                    {!selectMode && getSelect()}
-
-                </Flex>
-                <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Typography.Text style={{ fontSize: '0.8em', color: '#999' }}>Добавлено: {moment(item.createdAt).format('DD.MM.YYYY HH:mm')}</Typography.Text>
-                    <Typography.Text style={{ fontSize: '0.8em', color: '#999' }}>Обновлено: {moment(item.updatedAt).format('DD.MM.YYYY HH:mm')}</Typography.Text>
-                </div>
-
-            </Card >
-        </List.Item >)
+            </List.Item >)
 
     )
 }

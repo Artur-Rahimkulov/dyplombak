@@ -2,7 +2,7 @@ import { Navigate, Outlet, Route, useNavigate } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import authStore from "../../store/auth.store";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
-import { Button, Flex, FloatButton, Layout, Modal, theme } from "antd";
+import { Button, Flex, FloatButton, Layout, Modal, Tooltip, message, theme } from "antd";
 import styles from "./../../App.module.css";
 import { FullscreenExitOutlined, FullscreenOutlined, MenuOutlined, SettingOutlined } from "@ant-design/icons";
 import { Content, Header } from "antd/es/layout/layout";
@@ -35,6 +35,25 @@ const TextTrainWrapper = ({ children }: Props) => {
       }
     })
   }
+  const TextController = {
+    saveAccessLink: (access_link: string) => {
+      TextService.getTextWithAccessLink(access_link)
+        .then(res => {
+          let page = window.location.href.split(window.location.origin)[1].split('/')[1]
+          if (res != null) {
+            message.success({
+              content: 'Текст полученный по ссылке сохранен во вкладке "Доступ по ссылке" страницы "Мои тексты"',
+              key: 'success',
+            });
+            navigate('/' + page + '/id/' + res._id)
+            setText(res)
+          } else {
+            navigate('/' + page)
+          }
+        }
+        )
+    },
+  }
   useEffect(() => {
     setOptionsInput([])
     setOptions({})
@@ -55,7 +74,12 @@ const TextTrainWrapper = ({ children }: Props) => {
     }
     if (window.location.href.includes('/id/')) {
       handleSelect(window.location.href.split('/id/')[1].split('/')[0], true)
-    }
+    } else
+      if (window.location.href.includes('/access_link/')) {
+        let access_link = window.location.href.split('/access_link/')[1].split('/')[0]
+        TextController.saveAccessLink(access_link)
+      }
+      else setSelectText(true)
   }, [children])
   return <div style={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
     <Layout
@@ -63,6 +87,7 @@ const TextTrainWrapper = ({ children }: Props) => {
     >
       <Header style={{
         padding: 0,
+        // background: colorBgContainer,
         background: colorBgContainerDisabled,
         borderRadius: borderRadiusLG,
         // margin: '12px 8px',
@@ -79,7 +104,7 @@ const TextTrainWrapper = ({ children }: Props) => {
           }}
           gap={8}
         >
-          <Typography>{text?.title}</Typography>
+          <Typography >{text?.title && text?.title.length > 20 ? <Tooltip title={text.title}>{text?.title.substring(0, 30) + '...'}</Tooltip> : text?.title}</Typography>
           <Button icon={<MenuOutlined />} onClick={() => setSelectText(true)}>Выбрать Текст</Button>
           {/* <Button icon={<SettingOutlined />}>Настройки</Button> */}
           {optionsInput.map(option => option.input(
@@ -90,7 +115,7 @@ const TextTrainWrapper = ({ children }: Props) => {
                 return cont
               else return document.body
             }
-            
+
           ))}
         </Flex>
       </Header>

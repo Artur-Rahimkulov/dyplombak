@@ -15,7 +15,7 @@ const jwt = require('jsonwebtoken');
 const apiFolderPath = path.join(__dirname, 'api');
 const viewsPath = path.join(__dirname, 'views');
 
-app.use(cors({ origin: ["http://localhost:3000", "*"], credentials: true }));
+app.use(cors({ origin: ["http://localhost:3000","http://127.0.0.1:3000", "*"], credentials: true }));
 // Connect to MongoDB
 mongoose.set('strictQuery', false);
 connectDB();
@@ -33,14 +33,14 @@ app.use(cookieParser());
 app.use(function authenticateToken(req, res, next) {
 
   console.log(req.method + ' ' + req.path)
-  if (req.path.split('/')[2] === 'auth') return next()
+  if (req.path.split('/')[2] === 'auth' && !req.path.includes('checkAuthorized')) return next()
 
   const authHeader = req.headers['authorization']
   const token = authHeader && authHeader.split(' ')[1]
   if (token == null) return res.json({ message: 'No token provided', status: false })
   jwt.verify(token, process.env.SALT, (err, user) => {
     if (err) return res.json({ message: 'Invalid token', status: false })
-    console.log('Checked',req.method + ' ' + req.path)
+    console.log('Checked', req.method + ' ' + req.path)
     console.log(user)
     req.user = user
     req.user._id = user.user_id
@@ -70,7 +70,7 @@ function registerRoutes(file) {
 fs.readdirSync(apiFolderPath)
   .filter((file) => path.extname(file) === '.js')
   .forEach((file) => registerRoutes(file));
- 
+
 // Watch for changes in the api folder
 chokidar.watch(apiFolderPath).on('add', (file) => {
   if (path.extname(file) === '.js') {

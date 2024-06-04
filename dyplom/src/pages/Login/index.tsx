@@ -43,7 +43,7 @@ function Login(props: Props) {
     >
         <Card style={{ width: 500 }}>
             <div style={{ display: "flex", justifyContent: "center" }}>
-                <Title level={2}>Read Faster</Title>
+                <Title level={2}>Читай быстрее</Title>
             </div>
             <Form
                 name="normal_login"

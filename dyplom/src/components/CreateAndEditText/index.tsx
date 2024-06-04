@@ -39,7 +39,7 @@ interface Props {
     text_id: string | null;
     handleCreateEditText: (values: FieldType) => Promise<void>
 }
-function CreateEditText({  text_id,  handleCreateEditText }: Props) {
+function CreateEditText({ text_id, handleCreateEditText }: Props) {
     const [form] = Form.useForm();
     const getData = () => {
         if (text_id) {
@@ -105,7 +105,7 @@ function CreateEditText({  text_id,  handleCreateEditText }: Props) {
                 <div
                     style={{ marginTop: '1em', display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: '1em' }}>
                     <Button htmlType='reset'>Очистить</Button>
-                    <Button type="primary" htmlType="submit">Добавить</Button>
+                    <Button type="primary" htmlType="submit">{(text_id) ? 'Обновить' : 'Добавить'}</Button>
                 </div>
             </Form.Item>
         </Form>

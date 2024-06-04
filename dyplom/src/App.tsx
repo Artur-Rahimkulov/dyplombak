@@ -58,7 +58,7 @@ const App = observer(() => {
       child = <TextTrainWrapper >{children}</TextTrainWrapper>
     if (options?.train)
       child = <TrainWrapper >{child}</TrainWrapper>
-    if (fullscreen) 
+    if (fullscreen)
       child = getFullScreenWrapper(child)
     return <HeaderAndContent>
       {child}
@@ -68,14 +68,23 @@ const App = observer(() => {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={<PrivateRoute />}>
-          <Route path="/main" element={getHeaderAndContentWrapped(<Main />)} />
-          <Route path="/list/*" element={getHeaderAndContentWrapped(<TextList />)} />
-          <Route path="/shuffle/*" element={getHeaderAndContentWrapped(<Shuffle />, { fullscreen: true, text: true })} />
-          <Route path="/shulte" element={getHeaderAndContentWrapped(<Shulte />, { fullscreen: true, text: false, train: true })} />
-          <Route path="/reverse/*" element={getHeaderAndContentWrapped(<ReverseText />, { fullscreen: true, text: true })} />
-          <Route path="/clip/*" element={getHeaderAndContentWrapped(<ShowText />, { fullscreen: true, text: true })} />
-          <Route path="/" element={<Navigate to="/main" />} />
+        <Route path="/" element={getHeaderAndContentWrapped(<Main />)} />
+        <Route path="/main" element={getHeaderAndContentWrapped(<Main />)} />
+
+        <Route path="/list/*" element={<PrivateRoute child={getHeaderAndContentWrapped(<TextList />)}/>}>
+          {/* <Route element={getHeaderAndContentWrapped(<TextList />)} /> */}
+        </Route>
+        <Route path="/shuffle/*" element={<PrivateRoute child={getHeaderAndContentWrapped(<Shuffle />, { fullscreen: true, text: true })}/>}>
+          {/* <Route element={getHeaderAndContentWrapped(<Shuffle />, { fullscreen: true, text: true })} /> */}
+        </Route>
+        <Route path="/shulte" element={<PrivateRoute  child={getHeaderAndContentWrapped(<Shulte />, { fullscreen: true, text: false, train: true })}/>}>
+          {/* <Route element={getHeaderAndContentWrapped(<Shulte />, { fullscreen: true, text: false, train: true })} /> */}
+        </Route>
+        <Route path="/reverse/*" element={<PrivateRoute  child={getHeaderAndContentWrapped(<ReverseText />, { fullscreen: true, text: true })}/>}>
+          {/* <Route element={getHeaderAndContentWrapped(<ReverseText />, { fullscreen: true, text: true })} /> */}
+        </Route>
+        <Route path="/clip/*" element={<PrivateRoute  child={getHeaderAndContentWrapped(<ShowText />, { fullscreen: true, text: true })}/>}>
+          {/* <Route element={getHeaderAndContentWrapped(<ShowText />, { fullscreen: true, text: true })} /> */}
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

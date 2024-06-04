@@ -86,7 +86,7 @@ function Share({ text_id }: Props) {
                             popupMatchSelectWidth={false}
                             options={[
                                 { label: 'Тексты', value: null },
-                                ...Object.entries(CONST_TRAINS).map(([key, value]) => ({ label: value.label, value: key }))
+                                ...Object.entries(CONST_TRAINS).filter(([key, value]) => value.type == 'text').map(([key, value]) => ({ label: value.label, value: key }))
                             ]}
                             onSelect={(value) => setAccessType(value)}
                         />

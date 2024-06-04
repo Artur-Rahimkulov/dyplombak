@@ -110,7 +110,7 @@ export function shuffleText(str: string, N: number): {
     shuffled: string;
 }[][] {
     let words = splitTextToWordsArrays(str, undefined, { pinWords: false })
-    let result = words.map(paragraph => paragraph.map(word => {
+    let result = words.filter(par => par.length > 0).map(paragraph => paragraph.filter(word => word).map(word => {
         if (isUpperCase(word[0]))
             return { word: word, shuffled: word }
         return { word: word, shuffled: swapLetters(word, N) }

@@ -406,34 +406,39 @@ function TextTabs({ selectMode, onSelect }: Props) {
                                         value={queryParams.favoriteGroupId}
                                         onClear={() => setQueryParams({ ...queryParams, favoriteGroupId: 'all' })}
                                         popupMatchSelectWidth={false}
+                                        
                                         dropdownRender={(menu,) => (
                                             <>
                                                 {menu}
                                                 <Divider style={{ margin: '8px 0' }} />
                                                 <Space style={{ padding: '0 8px 4px' }}>
                                                     <Input
-                                                        placeholder="Please enter item"
-                                                        value={createFavoriteName}
+                                                        placeholder="Введите название новой закладки"
+                                                        // value={createFavoriteName}
+                                                        allowClear={true}
+                                                        maxLength={20}
+                                                        showCount={true}
                                                         onChange={(e) => setCreateFavoriteName(e.target.value)}
                                                         onKeyDown={(e) => e.stopPropagation()}
                                                     />
                                                     <Button type="text" icon={<PlusOutlined />}
                                                         onClick={() => favoritesController.createFavoritesGroup(createFavoriteName)}>
-                                                        Добавить группу
+                                                        Добавить закладку
                                                     </Button>
                                                 </Space>
                                             </>
                                         )}
+                                        
                                         optionRender={(item, info) => {
                                             return <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
                                                 <div>{item.label}</div>
                                                 <Space>
                                                     <Button type="text" icon={<EditOutlined />}
-                                                        onClick={() => setUpdateFavoriteGroup({ name: item.label as string, _id: item.value as string })}>
+                                                        onClick={(e) => {e.stopPropagation(); setUpdateFavoriteGroup({ name: item.label as string, _id: item.value as string })}}>
 
                                                     </Button>
                                                     <Button danger type="text" icon={<DeleteOutlined />}
-                                                        onClick={() => favoritesController.deleteFavoritesGroup(item.value as string)}>
+                                                        onClick={(e) => {e.stopPropagation(); favoritesController.deleteFavoritesGroup(item.value as string)}}>
                                                     </Button>
                                                 </Space>
                                             </div>

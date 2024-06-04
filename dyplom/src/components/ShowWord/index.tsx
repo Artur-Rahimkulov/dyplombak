@@ -19,9 +19,10 @@ interface Props {
     setWord: (word: number) => void,
     start: boolean,
     textLength: number,
+    fontSize: number,
 
 }
-function ShowWord({ text, word, setStart, setWord, start, textLength }: Props) {
+function ShowWord({ fontSize, text, word, setStart, setWord, start, textLength }: Props) {
     let getWord = (index: number) => {
         //find word by index
         for (let i = 0; i < text.length; i++) {
@@ -36,19 +37,22 @@ function ShowWord({ text, word, setStart, setWord, start, textLength }: Props) {
     return (
         <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'spaec-between' }}>
             <div style={{ width: '100%', flex: 1, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <p onClick={() => setStart(!start)}>
+                <p onClick={() => {
+                    if (text.length > 0)
+                        setStart(!start)
+                }}>
                     {
                         word >= 0 ?
-                            <h1>{getWord(word)}</h1>
-                            : <h1>Нажмите чтобы начать</h1>
+                            <h1 style={{ fontSize: '' + fontSize + 'rem' }}>{getWord(word)}</h1>
+                            : text.length > 0 ? <h1>Нажмите чтобы начать</h1> : <h1>Выберите текст</h1>
                     }
                 </p>
             </div>
             <ButtonGroup size='large' style={{ position: 'relative', bottom: '10px' }}>
-                <Button onClick={() => setWord(-1)} disabled={word == -1} icon={<RedoOutlined />} />
-                <Button onClick={() => setWord(word - 1)} disabled={word <= 0} icon={<LeftOutlined />} />
-                <Button onClick={() => setStart(!start)} icon={start ? <PauseOutlined /> : <CaretRightOutlined />} />
-                <Button onClick={() => setWord(word + 1)} disabled={word >= textLength} icon={<RightOutlined />} />
+                <Button onClick={() => setWord(-1)} disabled={word == -1 || text.length == 0} icon={<RedoOutlined />} />
+                <Button onClick={() => setWord(word - 1)} disabled={word <= 0 || text.length == 0} icon={<LeftOutlined />} />
+                <Button onClick={() => setStart(!start)} disabled={word >= textLength || text.length == 0} icon={start ? <PauseOutlined /> : <CaretRightOutlined />} />
+                <Button onClick={() => setWord(word + 1)} disabled={word >= textLength || text.length == 0} icon={<RightOutlined />} />
             </ButtonGroup>
         </div>
     )

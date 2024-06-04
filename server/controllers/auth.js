@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const CryptoJS = require('crypto-js');
 exports.login = async (req, res) => {
     try {
+        console.log(req.body)
         const { username, password } = req.body;
         if (!username || !password) {
             return res.json({ message: 'Заполните все поля!', status: false });

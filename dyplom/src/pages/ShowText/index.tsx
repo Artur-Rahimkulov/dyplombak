@@ -4,7 +4,7 @@ import ru_RU from 'antd/locale/ru_RU';
 import { ReflexContainer, ReflexSplitter, ReflexElement } from 'react-reflex';
 import 'react-reflex/styles.css';
 import styles from '../../App.module.css';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ShowWord from '../../components/ShowWord';
 import { Layout } from 'antd';
 import { Content, Footer, Header } from 'antd/es/layout/layout';
@@ -32,75 +32,82 @@ function ShowText(props: Props) {
     const [normTextLength, setNormTextLength] = useState<number>(0)
     const [normalizeText, setNormalizeText] = useState<{ minIndex: number, maxIndex: number, length: number, par: { word: string, index: number }[] }[]>([]);
     const [speed, setSpeed] = useState<number>(100)
-
     useEffect(() => {
         setSpeed(props.options.speed ? props.options.speed : 100)
     }, [props.options.speed])
     useEffect(() => {
-        console.log('normalizeText', normalizeText)
-        if (text) {
-            clearTimeout(timeout)
-            setWord(-1)
-            setStart(false)
-            let normText = getShowText(text?.text as string, props.options.level || 1)
+        setStart(false)
+        setWord(-1)
+        // clearTimeout(timeout)
+        if (props.text) {
+            setText(props.text)
+            let normText = getShowText(props.text.text as string, props.options.level || 1)
             setNormTextLength(normText.GlobalIndex - 1)
             setNormalizeText(normText.result)
         }
-    }, [text, props.options.level]);
+    }, [props.text, props.options.level]);
 
-    useEffect(() => {
-        if (props.text) {
-            clearTimeout(timeout)
-            setWord(-1)
-            setStart(false)
-            setText(props.text)
-        }
-    }, [props.text, props.options.level])
-    const nextWord = () => {
-        setWord(word + 1)
+    function setNextWord(word: number) {
+        return setTimeout(() => {
+            setWord(word + 1)
+        }, 1000 * 60 / speed)
     }
     useEffect(() => {
         clearTimeout(timeout)
         if (start) {
-            setTime(setTimeout(() => nextWord(), 1000 * 60 / speed))
+            setTime(setNextWord(word))
         }
     }, [start, speed])
     let chooseWord = (index: number) => {
         clearTimeout(timeout)
+        setStart(false)
         setWord(index)
     }
     useEffect(() => {
-        clearTimeout(timeout)
         if (text) {
             if (start && word != normTextLength) {
-                setTime(setTimeout(() => nextWord(), 1000 * 60 / speed))
+                clearTimeout(timeout)
+                setTime(setNextWord(word))
             } else {
                 if (start)
                     setStart(!start)
             }
         }
     }, [word])
-    useEffect(() => {
-        if (start) {
-        }
-        else {
-            clearTimeout(timeout)
-        }
-    }, [timeout])
+
     const {
         token: { colorBgContainer, borderRadiusLG, colorInfoBg, colorBgBase, colorBgContainerDisabled, colorBorderSecondary, colorPrimary, colorBorder },
     } = theme.useToken();
+    let getText = useMemo(() => {
+        return normalizeText.map((item, indexPar) => {
+            return <p>
+                {item.par.map((curWord, index, array) => {
+                    return <Button className={'text-word-' + curWord.index} size='small' type='text' key={index} onClick={() => chooseWord(curWord.index)}
+                        style={{
+                            marginRight: 5,
+                            marginLeft: 0,
+                            backgroundColor: word === curWord.index ? colorPrimary : '',
+                            padding: 0,
+
+                        }}>
+                        {curWord.word}
+                    </Button>
+                })}
+            </p>
+        }
+        )
+    }, [normalizeText])
     return (
         <div style={{ height: '100%', display: 'flex', flex: 1, overflow: 'auto', flexDirection: 'column', width: '100%' }}>
 
             <ReflexContainer orientation='vertical' windowResizeAware={true} style={{ height: '100%', overflow: 'auto', border: '1px solid ' + colorBorderSecondary, display: 'flex', flex: 1 }} >
                 <ReflexElement minSize={50} style={{ height: '100% ', width: '100%', display: 'flex', flex: 1, background: colorBgContainer }}>
-                    <ShowWord textLength={normTextLength} text={normalizeText} word={word} start={start} setWord={setWord} setStart={setStart} />
+                    <ShowWord fontSize={props?.options.fontSize || 4} textLength={normTextLength} text={normalizeText} word={word} start={start} setWord={setWord} setStart={setStart} />
                 </ReflexElement>
                 <ReflexSplitter />
                 <ReflexElement minSize={50} style={{ height: '100%', width: '100%', overflow: 'auto', display: 'flex', flex: 1 }}>
                     <Layout style={{ height: '100%', overflow: 'auto', width: '100%', display: 'flex', flex: 1 }}>
-                        <Header style={{ borderBottom: '1px solid ' + colorBorder, background: colorBgBase, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: '100%', fontSize: '20px', fontWeight: 'bold', height: '32px' }}> {text?.title}</Header>
+                        <Header style={{ borderBottom: '1px solid ' + colorBorder, background: colorBgBase, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: '100%', fontSize: '20px', fontWeight: 'bold', height: 'max-content', minHeight: '32px' }}> {text?.title}</Header>
                         <Content
                             style={{
                                 borderBottom: '1px solid ' + colorBorder,
@@ -116,53 +123,22 @@ function ShowText(props: Props) {
                                 paddingLeft: '12px'
                             }}
                         >
-                            {normalizeText.map((item, indexPar) => {
-                                return <p>
-                                    {item.par.map((curWord, index, array) => {
-                                        // if (array[index + 1])
-                                        //     if (['/', '—'].includes(array[index + 1])) {
-                                        //         let words = word + ' ' + array[index + 1] + ' ' + array[index + 2]
-                                        //         return <Tooltip key={index} title={words}>
-                                        //             <span key={word.word} style={{ marginRight: '5px', whiteSpace: 'nowrap', textWrap: 'nowrap' }}>
-                                        //                 {words}
-                                        //             </span>
-                                        //         </Tooltip>
-                                        //     }
-                                        // if (array[index - 1])
-                                        //     if (['/', '—'].includes(array[index - 1]) || ['/', '—'].includes(word))
-                                        //         return null
-                                        return <Button size='small' type='text' key={index} onClick={() => chooseWord(curWord.index)}
-                                            style={{
-                                                marginRight: 5,
-                                                marginLeft: 0,
-                                                backgroundColor: word === curWord.index ? colorPrimary : '',
-                                                padding: 0,
-
-                                            }}>
-                                            {curWord.word}
-                                        </Button>
-                                    })}
-                                </p>
-                            }
-                            )}
-
-
-
+                            {getText}
                         </Content>
                         <Footer
                             style={{
-                                padding: 4,
+                                padding: 0,
                                 overflowX: 'hidden',
                                 overflowY: 'hidden',
                                 // borderTop: '2px solid #dedede',
                                 backgroundColor: colorBgBase,
                             }}
                         >
-                            <Progress percent={word < 0 ? 0 : 100 * word / (normTextLength)} />
+                            <Progress percent={word < 0 ? 0 : 100 * word / (normTextLength)} style={{ paddingLeft: '12px', paddingRight: '12px' }} />
                             <Descriptions
                                 items={[
                                     { label: 'Слов в минуту', children: speed },
-                                    { label: 'Время для прочетния', children: Math.round(((normTextLength / (speed + 0.1)) * 100)) / 100 + ' мин.' }
+                                    { label: 'Время для прочетния', children: Math.round(((normTextLength / (speed)) * 100)) / 100 + ' мин.' }
 
                                 ]}
                             />
